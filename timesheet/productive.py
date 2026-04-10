@@ -19,8 +19,8 @@ HEADERS = {
 }
 
 
-def has_entries(date: datetime.date) -> bool:
-    """True si ya hay entradas de tiempo para ese día."""
+def _get_entries(date: datetime.date) -> list:
+    """Devuelve las entradas de tiempo para ese día."""
     date_str = date.strftime("%Y-%m-%d")
     url = f"{BASE_URL}/time_entries"
     params = {
@@ -31,16 +31,40 @@ def has_entries(date: datetime.date) -> bool:
     try:
         response = requests.get(url, params=params, headers=HEADERS, timeout=TIMEOUT)
     except requests.exceptions.RequestException:
-        return False
+        return []
     if response.status_code == 200:
-        entries = response.json().get("data", [])
-        return any(e.get("attributes", {}).get("time", 0) > 0 for e in entries)
-    return False
+        return response.json().get("data", [])
+    return []
+
+
+def has_entries(date: datetime.date) -> bool:
+    """True si ya hay entradas con tiempo real (>0 min) para ese día."""
+    return any(e.get("attributes", {}).get("time", 0) > 0 for e in _get_entries(date))
 
 
 def clock_day(date: datetime.date) -> bool:
-    """Registra 8h (480 min) en Productive. Devuelve True si éxito."""
+    """Registra 8h (480 min) en Productive. Si hay entrada de 0min, la actualiza."""
     date_str = date.strftime("%Y-%m-%d")
+
+    # Si hay una entrada de 0min, actualizarla en vez de crear duplicada
+    for entry in _get_entries(date):
+        if entry.get("attributes", {}).get("time", 0) == 0:
+            entry_id = entry["id"]
+            payload = {
+                "data": {
+                    "type": "time_entries",
+                    "id": entry_id,
+                    "attributes": {"time": 480},
+                }
+            }
+            url = f"{BASE_URL}/time_entries/{entry_id}"
+            try:
+                response = requests.patch(url, json=payload, headers=HEADERS, timeout=TIMEOUT)
+            except requests.exceptions.RequestException:
+                return False
+            return response.status_code == 200
+
+    # No hay entrada previa, crear nueva
     payload = {
         "data": {
             "type": "time_entries",
