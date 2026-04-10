@@ -16,13 +16,24 @@ def _mock_response(status_code=200, json_data=None):
 
 @patch("timesheet.productive.requests.get")
 def test_has_entries_true(mock_get):
-    mock_get.return_value = _mock_response(200, {"data": [{"id": "123"}]})
+    mock_get.return_value = _mock_response(200, {"data": [
+        {"id": "123", "attributes": {"time": 480}}
+    ]})
     assert has_entries(DATE) is True
 
 
 @patch("timesheet.productive.requests.get")
-def test_has_entries_false(mock_get):
+def test_has_entries_false_empty(mock_get):
     mock_get.return_value = _mock_response(200, {"data": []})
+    assert has_entries(DATE) is False
+
+
+@patch("timesheet.productive.requests.get")
+def test_has_entries_false_zero_time(mock_get):
+    """Entry exists but with 0 minutes — should not count as existing."""
+    mock_get.return_value = _mock_response(200, {"data": [
+        {"id": "456", "attributes": {"time": 0}}
+    ]})
     assert has_entries(DATE) is False
 
 

@@ -33,7 +33,8 @@ def has_entries(date: datetime.date) -> bool:
     except requests.exceptions.RequestException:
         return False
     if response.status_code == 200:
-        return len(response.json().get("data", [])) > 0
+        entries = response.json().get("data", [])
+        return any(e.get("attributes", {}).get("time", 0) > 0 for e in entries)
     return False
 
 
