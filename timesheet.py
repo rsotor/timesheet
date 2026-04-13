@@ -29,6 +29,7 @@ def main():
 
     stats = {name: {"done": 0, "exists": 0, "error": 0} for name in provider_names}
     off_days = 0
+    productive_days: list = []
 
     for day in days:
         print(f"\n⏰ {day}")
@@ -44,9 +45,13 @@ def main():
             if provider.has_entries(day):
                 print(f"{label}⏭️ Ya existe")
                 stats[name]["exists"] += 1
+                if name == "productive":
+                    productive_days.append(day)
             elif provider.clock_day(day):
                 print(f"{label}✅ Done")
                 stats[name]["done"] += 1
+                if name == "productive":
+                    productive_days.append(day)
             else:
                 print(f"{label}❌ Error")
                 stats[name]["error"] += 1
@@ -63,6 +68,23 @@ def main():
         print(f"✅ {name.capitalize():12} {s['done']}/{len(days)} días registrados{detail}")
     if off_days:
         print(f"🏖️ Días libres: {off_days}")
+
+    if productive_days:
+        answer = input(f"\n¿Enviar a aprobación en Productive {len(productive_days)} día(s)? [y/N] ").strip().lower()
+        if answer == "y":
+            submit_stats = {"done": 0, "exists": 0, "error": 0}
+            for day in productive_days:
+                result = productive.submit_day(day)
+                icon = {"done": "✅", "exists": "⏭️", "error": "❌"}[result]
+                print(f"   {day}  {icon} {result}")
+                submit_stats[result] += 1
+            parts = []
+            if submit_stats["exists"]:
+                parts.append(f"{submit_stats['exists']} ya enviados")
+            if submit_stats["error"]:
+                parts.append(f"{submit_stats['error']} errores")
+            detail = f" ({', '.join(parts)})" if parts else ""
+            print(f"📤 Enviados: {submit_stats['done']}/{len(productive_days)}{detail}")
 
 
 if __name__ == "__main__":

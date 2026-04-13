@@ -88,3 +88,27 @@ def clock_day(date: datetime.date) -> bool:
     except requests.exceptions.RequestException:
         return False
     return response.status_code == 201
+
+
+def submit_day(date: datetime.date) -> str:
+    """Envía a aprobación el día indicado. Devuelve 'done', 'exists' o 'error'."""
+    date_str = date.strftime("%Y-%m-%d")
+    payload = {
+        "data": {
+            "type": "timesheets",
+            "attributes": {"date": date_str},
+            "relationships": {
+                "person": {"data": {"type": "people", "id": PERSON_ID}},
+            },
+        }
+    }
+    url = f"{BASE_URL}/timesheets"
+    try:
+        response = requests.post(url, json=payload, headers=HEADERS, timeout=TIMEOUT)
+    except requests.exceptions.RequestException:
+        return "error"
+    if response.status_code == 201:
+        return "done"
+    if response.status_code == 422:
+        return "exists"
+    return "error"
