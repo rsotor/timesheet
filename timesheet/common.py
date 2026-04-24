@@ -36,13 +36,13 @@ def parse_args(argv: list[str]) -> tuple[datetime.date, datetime.date, list[str]
         end_date = today
     elif len(period) == 1:
         token = period[0]
-        if token == "today":
+        if token in ("today", "daily"):
             start_date = today
             end_date = today
-        elif token == "week":
+        elif token in ("week", "weekly"):
             start_date = today - datetime.timedelta(days=today.weekday())
             end_date = today
-        elif token == "month":
+        elif token in ("month", "monthly"):
             start_date = today.replace(day=1)
             end_date = today
         elif token == "last-month":
