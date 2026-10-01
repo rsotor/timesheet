@@ -3,6 +3,7 @@ name = "bamboo-timesheet"
 version = "0.2.0"
 description = "Multi-provider timesheet automation (BambooHR + Productive.io)"
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.13"
 dependencies = [
     "dotenv>=0.9.9",

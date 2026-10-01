@@ -12,6 +12,7 @@ A small Python CLI that fills in your timesheet in **BambooHR** and/or **Product
 4. [Usage](#usage)
 5. [Troubleshooting](#troubleshooting)
 6. [Development](#development)
+7. [License](#license)
 
 ## What it does
 
@@ -215,5 +216,10 @@ timesheet/
 ├── tests/                # pytest suite (HTTP mocked)
 ├── docs/images/          # README screenshots
 ├── .env.example          # Configuration template
+├── LICENSE
 └── pyproject.toml
 ```
+
+## License
+
+[MIT](LICENSE)
