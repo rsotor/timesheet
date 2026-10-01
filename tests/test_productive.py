@@ -76,7 +76,7 @@ def test_clock_day_sends_correct_payload(mock_post, mock_entries):
 ])
 @patch("timesheet.productive.requests.patch")
 def test_clock_day_patches_zero_entry(mock_patch, mock_entries):
-    """Si hay entrada de 0min, la actualiza con PATCH en vez de crear nueva."""
+    """If there is a 0-minute entry, PATCH it instead of creating a new one."""
     mock_patch.return_value = _mock_response(200)
     assert clock_day(DATE) is True
     call_url = mock_patch.call_args[0][0]

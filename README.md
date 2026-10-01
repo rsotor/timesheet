@@ -1,77 +1,144 @@
 # Timesheet Automation
 
-A Python CLI to automatically submit timesheet entries to **BambooHR** and/or **Productive.io** via their APIs.
+A small Python CLI that fills in your timesheet in **BambooHR** and/or **Productive.io** for you: 8 hours per working day, skipping days off and days already registered.
 
-## Features
+![Example run for a full week](docs/images/demo-run.png)
 
-- 🕐 Registers 8 hours per working day (08:00–13:00, 14:00–17:00) in BambooHR
-- 📅 Flexible period selection: today, week, month, last-month, day number, or explicit date range
-- 🏖️ Skips days with approved time-off requests (checked via BambooHR)
-- ✅ Prevents duplicate entries in both providers
-- 🔧 Patches 0-minute entries in Productive.io instead of creating duplicates
-- 🎯 Provider selection flags: run against one or both providers
-- ⚡ Skip confirmation prompt with `-y`
+## Contents
 
-## Prerequisites
+1. [What it does](#what-it-does)
+2. [Quick start (5 steps)](#quick-start-5-steps)
+3. [Getting your credentials](#getting-your-credentials)
+4. [Usage](#usage)
+5. [Troubleshooting](#troubleshooting)
+6. [Development](#development)
+7. [License](#license)
 
-- Python 3.13+
-- [uv](https://github.com/astral-sh/uv) package manager
-- BambooHR account with API access
-- Productive.io account with API access
+## What it does
 
-## Installation
+For every working day (Monday–Friday) in the period you choose:
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd bamboo-timesheeet
-   ```
+```mermaid
+flowchart TD
+    A[Working day] --> B{Approved time off<br/>in BambooHR?}
+    B -- Yes --> S[🏖️ Skip the day]
+    B -- No --> C{Already registered<br/>in the provider?}
+    C -- Yes --> E[⏭️ Leave it as is]
+    C -- No --> D[✅ Register 8 hours]
+    D --> F{Productive.io?}
+    E --> F
+    F -- Yes --> G[📤 Optionally submit<br/>the day for approval]
+```
 
-2. **Install dependencies:**
-   ```bash
-   uv sync
-   ```
+- **BambooHR:** two clock entries, 08:00–13:00 and 14:00–17:00.
+- **Productive.io:** one 480-minute time entry. If a 0-minute entry already exists for that day, it is updated instead of creating a duplicate.
+- At the end, it asks whether to **submit the Productive.io days for approval** (default: no).
 
-3. **Configure environment variables:**
-   ```bash
-   cp .env.example .env
-   ```
-   Edit `.env` and fill in your credentials (see [Getting Credentials](#getting-credentials) below).
+> **Note:** BambooHR credentials are always required, even with `--productive`, because days off are read from BambooHR.
 
-## Getting Credentials
+## Quick start (5 steps)
+
+### 1. Install the prerequisites
+
+- **Python 3.13+**
+- **[uv](https://docs.astral.sh/uv/getting-started/installation/)** (Python package manager):
+
+  ```bash
+  # macOS / Linux
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  ```
+
+### 2. Download the project
+
+```bash
+git clone https://github.com/rsotor/timesheet.git
+cd timesheet
+```
+
+### 3. Install dependencies
+
+```bash
+uv sync
+```
+
+### 4. Create your configuration file
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` in any text editor and replace every `xxxx` with your own values (see [Getting your credentials](#getting-your-credentials)). The file is listed in `.gitignore`, so it never gets committed.
+
+| Variable | Needed for | Where to find it |
+|---|---|---|
+| `BAMBOO_SUBDOMAIN` | Always | The part before `.bamboohr.com` in your BambooHR URL |
+| `BAMBOO_EMPLOYEE_ID` | Always | Your BambooHR profile URL |
+| `BAMBOO_API_KEY` | Always | BambooHR → your name → **API Keys** |
+| `PRODUCTIVE_API_TOKEN` | Productive.io | **Settings → API integrations** |
+| `PRODUCTIVE_ORG_ID` | Productive.io | Your Productive.io URL |
+| `PRODUCTIVE_PERSON_ID` | Productive.io | API call (see below) |
+| `PRODUCTIVE_SERVICE_ID` | Productive.io | API call (see below) |
+
+### 5. Run it
+
+```bash
+uv run timesheet.py
+```
+
+The script shows the period and the destination, and asks for confirmation before writing anything. That's it.
+
+If something is missing or wrong in `.env`, it stops before making any request and tells you what to fix:
+
+![Missing configuration message](docs/images/missing-config.png)
+
+## Getting your credentials
 
 ### BambooHR
 
-**Employee ID:**
-- Check your profile URL: `https://company.bamboohr.com/employees/employee.php?id=XXXX`
-- Or ask your HR administrator
+**Subdomain:** if you open BambooHR at `https://acme.bamboohr.com`, your subdomain is `acme`.
 
-**API Key:**
-1. Log in to BambooHR
-2. Click your name → **API Keys**
-3. Click **Generate new key** and copy it to `.env`
+**Employee ID:** open your profile; the number at the end of the URL is your ID:
+
+```
+https://acme.bamboohr.com/employees/employee.php?id=1234
+                                                    ^^^^
+```
+
+**API key:**
+
+1. Log in to BambooHR.
+2. Click your name (top right) → **API Keys**.
+3. Create a new key, give it a name (e.g. `timesheet`) and copy the key into `.env`.
+
+> The key is shown only once. If you lose it, delete it and generate a new one.
 
 ### Productive.io
 
-**API Token:**
-1. Go to **Settings → API integrations**
-2. Click **Generate new token** and copy it to `.env`
+**API token and organization ID:**
 
-**Organization ID:**
-- Found in your Productive URL or in API settings
+1. Go to **Settings → API integrations**.
+2. Click **Generate new token** and copy the token into `PRODUCTIVE_API_TOKEN`.
+3. The **organization ID** is the number at the start of the path in your Productive.io URL (`https://app.productive.io/12345-acme/...` → `12345`). Copy it into `PRODUCTIVE_ORG_ID`.
 
-**Person ID:**
+**Person ID** (your user ID) — replace the token, organization ID and email:
+
 ```bash
 curl -H "X-Auth-Token: YOUR_TOKEN" \
-     "https://api.productive.io/api/v2/people?filter[email]=your@email.com"
+     -H "X-Organization-Id: YOUR_ORG_ID" \
+     "https://api.productive.io/api/v2/people?filter[email]=you@example.com"
 ```
 
-**Service ID:**
+Copy the `"id"` of the first element in `data`.
+
+**Service ID** (the service where you log your hours). The simplest way is to log one time entry manually in Productive.io first, then run:
+
 ```bash
 curl -H "X-Auth-Token: YOUR_TOKEN" \
+     -H "X-Organization-Id: YOUR_ORG_ID" \
      "https://api.productive.io/api/v2/time_entries?filter[person_id]=YOUR_PERSON_ID&page[size]=1"
-# Check the `service` relationship in the response
 ```
+
+In the response, look for `relationships` → `service` → `data` → `id`.
 
 ## Usage
 
@@ -79,76 +146,80 @@ curl -H "X-Auth-Token: YOUR_TOKEN" \
 uv run timesheet.py [period] [--bamboo | --productive | --both] [-y]
 ```
 
-### Period options
+### Period
 
-| Argument | Description |
+| Argument | Range registered |
 |---|---|
-| *(none)* | Today |
-| `today` | Today |
-| `week` | Monday of current week → today |
-| `month` | 1st of current month → today |
-| `last-month` | Full previous month |
-| `22` | 1st of current month → day 22 |
-| `01-03-2025 31-03-2025` | Explicit range (DD-MM-YYYY) |
+| *(none)*, `today`, `daily` | Today |
+| `week`, `weekly` | Monday of the current week → today |
+| `month`, `monthly` | 1st of the current month → today |
+| `last-month` | The whole previous month |
+| `22` | 1st of the current month → day 22 |
+| `01-03-2025 31-03-2025` | Explicit range (`DD-MM-YYYY DD-MM-YYYY`) |
+
+### Options
+
+| Flag | Effect |
+|---|---|
+| `--bamboo` | BambooHR only |
+| `--productive` | Productive.io only |
+| `--both` | Both providers (default) |
+| `-y`, `--yes` | Skip the initial confirmation |
 
 ### Examples
 
 ```bash
-# Register today in both providers (default)
+# Today, both providers
 uv run timesheet.py
 
-# Register the full current week, skip confirmation
+# The whole current week, without the confirmation prompt
 uv run timesheet.py week -y
 
-# Register from the 1st to the 15th of this month, BambooHR only
+# From the 1st to the 15th of this month, BambooHR only
 uv run timesheet.py 15 --bamboo
 
-# Register last month in Productive.io only
+# The previous month, Productive.io only
 uv run timesheet.py last-month --productive
 
-# Register a custom range in both providers
-uv run timesheet.py 01-03-2025 31-03-2025 --both
+# A custom range
+uv run timesheet.py 01-03-2025 31-03-2025
 ```
 
-### Provider flags
+Running the same period twice is safe: days already registered are reported as `⏭️ Already registered` and left untouched.
 
-| Flag | Description |
+## Troubleshooting
+
+| Symptom | Likely cause |
 |---|---|
-| `--bamboo` | Submit to BambooHR only |
-| `--productive` | Submit to Productive.io only |
-| `--both` | Submit to both (default) |
-| `-y` / `--yes` | Skip the confirmation prompt |
+| `❌ Invalid configuration in .env` | `.env` does not exist, has empty or example (`xxxx`) values, or a value has the wrong format (IDs must be numbers). Each line says which variable and why. Repeat [step 4](#4-create-your-configuration-file). |
+| `❌ Error` on every day for BambooHR | Wrong `BAMBOO_SUBDOMAIN`, employee ID or API key, or your account cannot use time tracking. |
+| `❌ Error` on every day for Productive.io | Wrong token, organization ID, person ID or service ID. |
+| Days off are not skipped | The time-off request is not approved yet in BambooHR. |
+| `uv: command not found` | uv is not installed, or the terminal needs to be restarted after installing it. |
 
-## How It Works
-
-For each working day in the selected range:
-
-1. 🏖️ Checks BambooHR for approved time-off — skips if found
-2. ✅ Checks each provider for existing entries — skips if already registered
-3. 📝 Creates entries in each selected provider:
-   - **BambooHR:** two clock entries (08:00–13:00 and 14:00–17:00)
-   - **Productive.io:** one time entry (480 minutes); patches existing 0-minute entries if present
-
-## Project Structure
-
-```
-bamboo-timesheeet/
-├── timesheet.py          # CLI entry point
-├── timesheet/
-│   ├── __init__.py
-│   ├── common.py         # Argument parsing and working-day helpers
-│   ├── bamboo.py         # BambooHR provider (is_off_day, has_entries, clock_day)
-│   └── productive.py     # Productive.io provider (has_entries, clock_day)
-├── tests/
-│   ├── __init__.py
-│   └── test_common.py
-├── .env.example
-└── pyproject.toml
-```
-
-## Running Tests
+## Development
 
 ```bash
 uv sync --extra dev
-uv run pytest tests/ -v
+uv run pytest -v
 ```
+
+The tests mock every HTTP call; they never touch the real APIs.
+
+```
+timesheet/
+├── timesheet.py          # CLI entry point
+├── timesheet/
+│   ├── common.py         # Argument parsing, working days, config check
+│   ├── bamboo.py         # BambooHR: is_off_day, has_entries, clock_day
+│   └── productive.py     # Productive.io: has_entries, clock_day, submit_day
+├── tests/                # pytest suite (HTTP mocked)
+├── docs/images/          # README screenshots
+├── .env.example          # Configuration template
+├── LICENSE
+└── pyproject.toml
+```
+
+## License
+
+[MIT](LICENSE)
