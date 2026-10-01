@@ -12,7 +12,8 @@ A small Python CLI that fills in your timesheet in **BambooHR** and/or **Product
 4. [Usage](#usage)
 5. [Troubleshooting](#troubleshooting)
 6. [Development](#development)
-7. [License](#license)
+7. [Changelog and contributing](#changelog-and-contributing)
+8. [License](#license)
 
 ## What it does
 
@@ -219,6 +220,12 @@ timesheet/
 ├── LICENSE
 └── pyproject.toml
 ```
+
+## Changelog and contributing
+
+- What changed in each version: [CHANGELOG.md](CHANGELOG.md)
+- How to contribute: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Security issues: [SECURITY.md](SECURITY.md) (never in a public issue)
 
 ## License
 

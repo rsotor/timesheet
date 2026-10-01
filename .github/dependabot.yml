@@ -1,0 +1,21 @@
+# Dependency updates.
+# - Once a week, a single PR per ecosystem with all MINOR and PATCH updates (compatible).
+# - MAJOR versions do not arrive as automatic PRs: they can break things and are done by hand,
+#   tested. Security alerts still show up in the Security tab.
+version: 2
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      python-minor:
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      actions:
+        patterns: ["*"]
