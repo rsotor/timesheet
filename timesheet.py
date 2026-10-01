@@ -14,6 +14,11 @@ PROVIDERS = {
 
 
 def main():
+    # Windows uses a legacy code page (e.g. cp1252) when output is redirected,
+    # which cannot encode the emoji in our messages.
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(encoding="utf-8")
+
     start_date, end_date, provider_names, skip_confirm = parse_args(sys.argv[1:])
     days = working_days(start_date, end_date)
 
