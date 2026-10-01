@@ -12,6 +12,13 @@ SERVICE_ID = os.getenv("PRODUCTIVE_SERVICE_ID")
 BASE_URL = "https://api.productive.io/api/v2"
 TIMEOUT = 30
 
+REQUIRED_ENV = (
+    "PRODUCTIVE_API_TOKEN",
+    "PRODUCTIVE_ORG_ID",
+    "PRODUCTIVE_PERSON_ID",
+    "PRODUCTIVE_SERVICE_ID",
+)
+
 HEADERS = {
     "Content-Type": "application/vnd.api+json",
     "X-Auth-Token": API_TOKEN or "",

@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import os
 
 
 def _today() -> datetime.date:
@@ -71,3 +72,8 @@ def working_days(start: datetime.date, end: datetime.date) -> list[datetime.date
             days.append(current)
         current += datetime.timedelta(days=1)
     return days
+
+
+def missing_env(names: tuple[str, ...]) -> list[str]:
+    """Variables de entorno requeridas que no están definidas o están vacías."""
+    return [name for name in names if not os.getenv(name)]

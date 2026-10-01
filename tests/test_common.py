@@ -29,3 +29,11 @@ def test_working_days_single_day_weekday():
 def test_working_days_single_day_weekend():
     day = datetime.date(2026, 4, 11)  # Saturday
     assert working_days(day, day) == []
+
+
+def test_missing_env_reports_unset_and_empty(monkeypatch):
+    from timesheet.common import missing_env
+    monkeypatch.setenv("TS_SET", "value")
+    monkeypatch.setenv("TS_EMPTY", "")
+    monkeypatch.delenv("TS_UNSET", raising=False)
+    assert missing_env(("TS_SET", "TS_EMPTY", "TS_UNSET")) == ["TS_EMPTY", "TS_UNSET"]

@@ -3,7 +3,7 @@
 
 import sys
 
-from timesheet.common import parse_args, working_days
+from timesheet.common import missing_env, parse_args, working_days
 from timesheet import bamboo, productive
 
 
@@ -16,6 +16,18 @@ PROVIDERS = {
 def main():
     start_date, end_date, provider_names, skip_confirm = parse_args(sys.argv[1:])
     days = working_days(start_date, end_date)
+
+    # BambooHR siempre es necesario: se usa para detectar días libres
+    required = list(bamboo.REQUIRED_ENV)
+    if "productive" in provider_names:
+        required += productive.REQUIRED_ENV
+    missing = missing_env(tuple(required))
+    if missing:
+        print("❌ Faltan variables en .env:")
+        for name in missing:
+            print(f"   - {name}")
+        print("   Copia .env.example a .env y complétalo (ver README).")
+        sys.exit(1)
 
     provider_label = " + ".join(p.capitalize() for p in provider_names)
     print(f"\n📅 Timesheet: {start_date} → {end_date} ({len(days)} días laborables)")

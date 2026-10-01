@@ -7,9 +7,11 @@ load_dotenv()
 
 EMPLOYEE_ID = os.getenv("BAMBOO_EMPLOYEE_ID")
 API_KEY = os.getenv("BAMBOO_API_KEY")
-SUBDOMAIN = os.getenv("BAMBOO_SUBDOMAIN", "yourcompany")
+SUBDOMAIN = os.getenv("BAMBOO_SUBDOMAIN")
 BASE_URL = f"https://{SUBDOMAIN}.bamboohr.com/api/v1"
 TIMEOUT = 30
+
+REQUIRED_ENV = ("BAMBOO_SUBDOMAIN", "BAMBOO_EMPLOYEE_ID", "BAMBOO_API_KEY")
 
 
 def is_off_day(date: datetime.date) -> bool:
