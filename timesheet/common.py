@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import os
+import re
 
 
 def _today() -> datetime.date:
@@ -74,6 +75,32 @@ def working_days(start: datetime.date, end: datetime.date) -> list[datetime.date
     return days
 
 
-def missing_env(names: tuple[str, ...]) -> list[str]:
-    """Required environment variables that are unset or empty."""
-    return [name for name in names if not os.getenv(name)]
+PLACEHOLDER = "xxxx"
+
+FORMATS = {
+    "number": (re.compile(r"\d+"), "must be a number"),
+    "subdomain": (
+        re.compile(r"[a-z0-9-]+"),
+        "must be only the subdomain (lowercase letters, digits or '-'), e.g. acme",
+    ),
+    "secret": (re.compile(r"\S+"), "must not contain spaces"),
+}
+
+
+def config_errors(spec: dict[str, str]) -> list[str]:
+    """
+    Check environment variables against their expected format.
+    Return one message per invalid variable. Values are never echoed,
+    since some of them are secrets.
+    """
+    errors = []
+    for name, kind in spec.items():
+        value = os.getenv(name, "").strip()
+        pattern, problem = FORMATS[kind]
+        if not value:
+            errors.append(f"{name}: missing")
+        elif value == PLACEHOLDER:
+            errors.append(f"{name}: still has the example value {PLACEHOLDER}")
+        elif not pattern.fullmatch(value):
+            errors.append(f"{name}: {problem}")
+    return errors

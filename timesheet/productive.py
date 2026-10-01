@@ -12,12 +12,13 @@ SERVICE_ID = os.getenv("PRODUCTIVE_SERVICE_ID")
 BASE_URL = "https://api.productive.io/api/v2"
 TIMEOUT = 30
 
-REQUIRED_ENV = (
-    "PRODUCTIVE_API_TOKEN",
-    "PRODUCTIVE_ORG_ID",
-    "PRODUCTIVE_PERSON_ID",
-    "PRODUCTIVE_SERVICE_ID",
-)
+# Variable name -> expected format (see common.config_errors)
+REQUIRED_ENV = {
+    "PRODUCTIVE_API_TOKEN": "secret",
+    "PRODUCTIVE_ORG_ID": "number",
+    "PRODUCTIVE_PERSON_ID": "number",
+    "PRODUCTIVE_SERVICE_ID": "number",
+}
 
 HEADERS = {
     "Content-Type": "application/vnd.api+json",

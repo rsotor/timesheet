@@ -87,7 +87,7 @@ uv run timesheet.py
 
 The script shows the period and the destination, and asks for confirmation before writing anything. That's it.
 
-If something is missing from `.env`, it stops before making any request and tells you what to fill in:
+If something is missing or wrong in `.env`, it stops before making any request and tells you what to fix:
 
 ![Missing configuration message](docs/images/missing-config.png)
 
@@ -191,7 +191,7 @@ Running the same period twice is safe: days already registered are reported as `
 
 | Symptom | Likely cause |
 |---|---|
-| `❌ Missing variables in .env` | `.env` does not exist or has empty values. Repeat [step 4](#4-create-your-configuration-file). |
+| `❌ Invalid configuration in .env` | `.env` does not exist, has empty or example (`xxxx`) values, or a value has the wrong format (IDs must be numbers). Each line says which variable and why. Repeat [step 4](#4-create-your-configuration-file). |
 | `❌ Error` on every day for BambooHR | Wrong `BAMBOO_SUBDOMAIN`, employee ID or API key, or your account cannot use time tracking. |
 | `❌ Error` on every day for Productive.io | Wrong token, organization ID, person ID or service ID. |
 | Days off are not skipped | The time-off request is not approved yet in BambooHR. |

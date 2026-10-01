@@ -3,7 +3,7 @@
 
 import sys
 
-from timesheet.common import missing_env, parse_args, working_days
+from timesheet.common import config_errors, parse_args, working_days
 from timesheet import bamboo, productive
 
 
@@ -18,19 +18,19 @@ def main():
     days = working_days(start_date, end_date)
 
     # BambooHR is always required: it is used to detect days off
-    required = list(bamboo.REQUIRED_ENV)
+    required = dict(bamboo.REQUIRED_ENV)
     if "productive" in provider_names:
-        required += productive.REQUIRED_ENV
-    missing = missing_env(tuple(required))
-    if missing:
-        print("❌ Missing variables in .env:")
-        for name in missing:
-            print(f"   - {name}")
+        required.update(productive.REQUIRED_ENV)
+    errors = config_errors(required)
+    if errors:
+        print("❌ Invalid configuration in .env:")
+        for error in errors:
+            print(f"   - {error}")
         print("   Copy .env.example to .env and fill it in (see README).")
         sys.exit(1)
 
     provider_label = " + ".join(p.capitalize() for p in provider_names)
-    print(f"\n📅 Timesheet: {start_date} → {end_date} ({len(days)} working days)")
+    print(f"\n📅 Timesheet: {start_date} → {end_date} ({len(days)} working {'day' if len(days) == 1 else 'days'})")
     print(f"Target: {provider_label}")
 
     if not skip_confirm:

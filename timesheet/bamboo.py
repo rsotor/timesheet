@@ -11,7 +11,12 @@ SUBDOMAIN = os.getenv("BAMBOO_SUBDOMAIN")
 BASE_URL = f"https://{SUBDOMAIN}.bamboohr.com/api/v1"
 TIMEOUT = 30
 
-REQUIRED_ENV = ("BAMBOO_SUBDOMAIN", "BAMBOO_EMPLOYEE_ID", "BAMBOO_API_KEY")
+# Variable name -> expected format (see common.config_errors)
+REQUIRED_ENV = {
+    "BAMBOO_SUBDOMAIN": "subdomain",
+    "BAMBOO_EMPLOYEE_ID": "number",
+    "BAMBOO_API_KEY": "secret",
+}
 
 
 def is_off_day(date: datetime.date) -> bool:
