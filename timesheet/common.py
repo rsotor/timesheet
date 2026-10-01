@@ -9,15 +9,15 @@ def _today() -> datetime.date:
 
 def parse_args(argv: list[str]) -> tuple[datetime.date, datetime.date, list[str], bool]:
     """
-    Parsea argumentos del CLI.
-    Devuelve (start_date, end_date, providers, skip_confirm).
+    Parse CLI arguments.
+    Return (start_date, end_date, providers, skip_confirm).
     """
     parser = argparse.ArgumentParser(description="Timesheet multi-provider")
-    parser.add_argument("period", nargs="*", default=[], help="Período: today, week, month, last-month, DD, o DD-MM-YYYY DD-MM-YYYY")
-    parser.add_argument("--bamboo", action="store_true", help="Solo BambooHR")
-    parser.add_argument("--productive", action="store_true", help="Solo Productive.io")
-    parser.add_argument("--both", action="store_true", help="Ambos proveedores")
-    parser.add_argument("-y", "--yes", action="store_true", help="Saltar confirmación")
+    parser.add_argument("period", nargs="*", default=[], help="Period: today, week, month, last-month, DD, or DD-MM-YYYY DD-MM-YYYY")
+    parser.add_argument("--bamboo", action="store_true", help="BambooHR only")
+    parser.add_argument("--productive", action="store_true", help="Productive.io only")
+    parser.add_argument("--both", action="store_true", help="Both providers (default)")
+    parser.add_argument("-y", "--yes", action="store_true", help="Skip confirmation")
     args = parser.parse_args(argv)
 
     today = _today()
@@ -58,13 +58,13 @@ def parse_args(argv: list[str]) -> tuple[datetime.date, datetime.date, list[str]
         start_date = datetime.datetime.strptime(period[0], "%d-%m-%Y").date()
         end_date = datetime.datetime.strptime(period[1], "%d-%m-%Y").date()
     else:
-        parser.error("Demasiados argumentos de período")
+        parser.error("Too many period arguments")
 
     return start_date, end_date, providers, args.yes
 
 
 def working_days(start: datetime.date, end: datetime.date) -> list[datetime.date]:
-    """Días de lunes a viernes en el rango [start, end]."""
+    """Monday-to-Friday days in the range [start, end]."""
     days = []
     current = start
     while current <= end:
@@ -75,5 +75,5 @@ def working_days(start: datetime.date, end: datetime.date) -> list[datetime.date
 
 
 def missing_env(names: tuple[str, ...]) -> list[str]:
-    """Variables de entorno requeridas que no están definidas o están vacías."""
+    """Required environment variables that are unset or empty."""
     return [name for name in names if not os.getenv(name)]

@@ -184,13 +184,13 @@ uv run timesheet.py last-month --productive
 uv run timesheet.py 01-03-2025 31-03-2025
 ```
 
-Running the same period twice is safe: days already registered are reported as `⏭️ Ya existe` and left untouched.
+Running the same period twice is safe: days already registered are reported as `⏭️ Already registered` and left untouched.
 
 ## Troubleshooting
 
 | Symptom | Likely cause |
 |---|---|
-| `❌ Faltan variables en .env` | `.env` does not exist or has empty values. Repeat [step 4](#4-create-your-configuration-file). |
+| `❌ Missing variables in .env` | `.env` does not exist or has empty values. Repeat [step 4](#4-create-your-configuration-file). |
 | `❌ Error` on every day for BambooHR | Wrong `BAMBOO_SUBDOMAIN`, employee ID or API key, or your account cannot use time tracking. |
 | `❌ Error` on every day for Productive.io | Wrong token, organization ID, person ID or service ID. |
 | Days off are not skipped | The time-off request is not approved yet in BambooHR. |
@@ -213,7 +213,7 @@ timesheet/
 │   ├── bamboo.py         # BambooHR: is_off_day, has_entries, clock_day
 │   └── productive.py     # Productive.io: has_entries, clock_day, submit_day
 ├── tests/                # pytest suite (HTTP mocked)
-├── docs/                 # Design notes and README images
+├── docs/images/          # README screenshots
 ├── .env.example          # Configuration template
 └── pyproject.toml
 ```

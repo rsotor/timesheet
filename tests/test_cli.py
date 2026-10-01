@@ -4,7 +4,7 @@ from timesheet.common import parse_args, working_days
 
 
 def test_full_flow_no_args_defaults_to_today():
-    """Sin argumentos = hoy + ambos providers."""
+    """No arguments = today + both providers."""
     today = datetime.date(2026, 4, 10)
     with patch("timesheet.common._today", return_value=today):
         start, end, providers, skip = parse_args([])
@@ -13,7 +13,7 @@ def test_full_flow_no_args_defaults_to_today():
 
 
 def test_full_flow_month_productive_only():
-    """month --productive = mes actual, solo productive."""
+    """month --productive = current month, productive only."""
     today = datetime.date(2026, 4, 10)
     with patch("timesheet.common._today", return_value=today):
         start, end, providers, skip = parse_args(["month", "--productive", "-y"])

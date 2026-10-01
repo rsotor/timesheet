@@ -27,7 +27,7 @@ HEADERS = {
 
 
 def _get_entries(date: datetime.date) -> list:
-    """Devuelve las entradas de tiempo para ese día."""
+    """Return the time entries for that day."""
     date_str = date.strftime("%Y-%m-%d")
     url = f"{BASE_URL}/time_entries"
     params = {
@@ -45,15 +45,15 @@ def _get_entries(date: datetime.date) -> list:
 
 
 def has_entries(date: datetime.date) -> bool:
-    """True si ya hay entradas con tiempo real (>0 min) para ese día."""
+    """True if there are entries with actual time (>0 min) for that day."""
     return any(e.get("attributes", {}).get("time", 0) > 0 for e in _get_entries(date))
 
 
 def clock_day(date: datetime.date) -> bool:
-    """Registra 8h (480 min) en Productive. Si hay entrada de 0min, la actualiza."""
+    """Log 8h (480 min) in Productive. Update an existing 0-minute entry if present."""
     date_str = date.strftime("%Y-%m-%d")
 
-    # Si hay una entrada de 0min, actualizarla en vez de crear duplicada
+    # If there is a 0-minute entry, update it instead of creating a duplicate
     for entry in _get_entries(date):
         if entry.get("attributes", {}).get("time", 0) == 0:
             entry_id = entry["id"]
@@ -71,7 +71,7 @@ def clock_day(date: datetime.date) -> bool:
                 return False
             return response.status_code == 200
 
-    # No hay entrada previa, crear nueva
+    # No previous entry, create a new one
     payload = {
         "data": {
             "type": "time_entries",
@@ -98,7 +98,7 @@ def clock_day(date: datetime.date) -> bool:
 
 
 def submit_day(date: datetime.date) -> str:
-    """Envía a aprobación el día indicado. Devuelve 'done', 'exists' o 'error'."""
+    """Submit the given day for approval. Return 'done', 'exists' or 'error'."""
     date_str = date.strftime("%Y-%m-%d")
     payload = {
         "data": {

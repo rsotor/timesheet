@@ -15,7 +15,7 @@ REQUIRED_ENV = ("BAMBOO_SUBDOMAIN", "BAMBOO_EMPLOYEE_ID", "BAMBOO_API_KEY")
 
 
 def is_off_day(date: datetime.date) -> bool:
-    """True si hay solicitud de tiempo libre aprobada para ese día."""
+    """True if there is an approved time-off request for that day."""
     url = f"{BASE_URL}/time_off/requests"
     params = {
         "employeeId": EMPLOYEE_ID,
@@ -37,7 +37,7 @@ def is_off_day(date: datetime.date) -> bool:
 
 
 def has_entries(date: datetime.date) -> bool:
-    """True si ya hay entradas de timesheet para ese día."""
+    """True if there are already timesheet entries for that day."""
     date_str = date.strftime("%Y-%m-%d")
     url = f"{BASE_URL}/time_tracking/timesheet_entries"
     params = {
@@ -58,7 +58,7 @@ def has_entries(date: datetime.date) -> bool:
 
 
 def clock_day(date: datetime.date) -> bool:
-    """Registra 2 entradas de reloj (08-13, 14-17). Devuelve True si éxito."""
+    """Create two clock entries (08-13, 14-17). Return True on success."""
     date_str = date.strftime("%Y-%m-%d")
     payload = {
         "entries": [
