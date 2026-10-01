@@ -1,0 +1,26 @@
+name: PR title
+
+# The CHANGELOG is built from PR titles (PRs are squash-merged: the title becomes the commit).
+# Format: type(optional scope): description. E.g. "feat(productive): submit days for approval".
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  title:
+    name: PR title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check format
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if printf '%s' "$TITLE" | grep -qE '^(feat|fix|perf|docs|build|ci|test|refactor|chore|revert)(\([^)]+\))?!?: .+'; then
+            echo "OK: $TITLE"
+          else
+            echo "::error::The title must start with a type: feat, fix, perf, docs, build, ci, test, refactor, chore or revert. E.g. \"fix(bamboo): handle API timeouts\". See CONTRIBUTING.md"
+            exit 1
+          fi

@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Tests (${{ matrix.os }}, Python ${{ matrix.python }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # Add macos-latest once the repo is public (in private repos macOS minutes bill x10).
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.13", "3.14"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install (lockfile must match pyproject.toml)
+        run: uv sync --locked --extra dev
+      - name: Tests
+        run: uv run pytest -v
+      - name: CLI starts and reports invalid configuration
+        # Runs with output redirected, like CI and scripts do. On Windows this is
+        # where emoji output would fail with UnicodeEncodeError.
+        shell: bash
+        run: |
+          set +e
+          uv run timesheet.py -y > out.txt 2>&1
+          code=$?
+          set -e
+          cat out.txt
+          test "$code" -eq 1
+          grep -q "Invalid configuration in .env" out.txt
+          grep -q "BAMBOO_SUBDOMAIN: missing" out.txt
+
+  tests-ok:
+    name: tests-ok
+    if: always()
+    needs: [tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All jobs green
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+        run: exit 1
+      - run: echo "All jobs green"
