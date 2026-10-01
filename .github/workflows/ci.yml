@@ -14,8 +14,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Add macos-latest once the repo is public (in private repos macOS minutes bill x10).
-        os: [ubuntu-latest, windows-latest]
+        # macOS is free in public repos; remove it if the repo ever goes private (bills x10).
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python: ["3.13", "3.14"]
     runs-on: ${{ matrix.os }}
     steps:
