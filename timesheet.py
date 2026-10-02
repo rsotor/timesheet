@@ -86,26 +86,24 @@ def main():
     if off_days:
         print(f"🏖️ Days off: {off_days}")
 
-    if productive_days:
-        answer = input(f"\nSubmit {len(productive_days)} day(s) for approval in Productive? [y/N] ").strip().lower()
+    # Only offer days not yet submitted or approved (rejected days count as pending)
+    pending = [day for day in productive_days if productive.needs_submit(day)]
+    if productive_days and not pending:
+        print("\n📤 Productive: nothing pending submission")
+    if pending:
+        print(f"\n📤 Pending submission in Productive: {', '.join(str(d) for d in pending)}")
+        answer = input(f"Submit {len(pending)} day(s) for approval? [y/N] ").strip().lower()
         if answer == "y":
-            submit_stats = {"done": 0, "exists": 0, "error": 0}
-            for day in productive_days:
-                result = productive.submit_day(day)
-                icon, text = {
-                    "done": ("✅", "Submitted"),
-                    "exists": ("⏭️", "Already submitted"),
-                    "error": ("❌", "Error"),
-                }[result]
-                print(f"   {day}  {icon} {text}")
-                submit_stats[result] += 1
-            parts = []
-            if submit_stats["exists"]:
-                parts.append(f"{submit_stats['exists']} already submitted")
-            if submit_stats["error"]:
-                parts.append(f"{submit_stats['error']} errors")
-            detail = f" ({', '.join(parts)})" if parts else ""
-            print(f"📤 Submitted: {submit_stats['done']}/{len(productive_days)}{detail}")
+            submitted = 0
+            for day in pending:
+                if productive.submit_day(day):
+                    print(f"   {day}  ✅ Submitted")
+                    submitted += 1
+                else:
+                    print(f"   {day}  ❌ Error")
+            errors = len(pending) - submitted
+            detail = f" ({errors} errors)" if errors else ""
+            print(f"📤 Submitted: {submitted}/{len(pending)}{detail}")
 
 
 if __name__ == "__main__":
