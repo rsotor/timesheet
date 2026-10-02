@@ -50,6 +50,18 @@ def has_entries(date: datetime.date) -> bool:
     return any(e.get("attributes", {}).get("time", 0) > 0 for e in _get_entries(date))
 
 
+def needs_submit(date: datetime.date) -> bool:
+    """True if the day has time logged that is neither submitted nor approved.
+
+    Productive clears `submitted` once a day is approved, and a rejected day is
+    neither, so rejected days count as pending too.
+    """
+    return any(
+        a.get("time", 0) > 0 and not a.get("submitted") and not a.get("approved")
+        for a in (e.get("attributes", {}) for e in _get_entries(date))
+    )
+
+
 def clock_day(date: datetime.date) -> bool:
     """Log 8h (480 min) in Productive. Update an existing 0-minute entry if present."""
     date_str = date.strftime("%Y-%m-%d")
@@ -98,8 +110,8 @@ def clock_day(date: datetime.date) -> bool:
     return response.status_code == 201
 
 
-def submit_day(date: datetime.date) -> str:
-    """Submit the given day for approval. Return 'done', 'exists' or 'error'."""
+def submit_day(date: datetime.date) -> bool:
+    """Submit the given day for approval. Return True on success."""
     date_str = date.strftime("%Y-%m-%d")
     payload = {
         "data": {
@@ -114,9 +126,5 @@ def submit_day(date: datetime.date) -> str:
     try:
         response = requests.post(url, json=payload, headers=HEADERS, timeout=TIMEOUT)
     except requests.exceptions.RequestException:
-        return "error"
-    if response.status_code == 201:
-        return "done"
-    if response.status_code == 422:
-        return "exists"
-    return "error"
+        return False
+    return response.status_code == 201

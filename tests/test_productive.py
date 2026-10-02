@@ -1,6 +1,6 @@
 import datetime
 from unittest.mock import patch, MagicMock
-from timesheet.productive import has_entries, clock_day
+from timesheet.productive import has_entries, clock_day, needs_submit, submit_day
 
 
 DATE = datetime.date(2026, 4, 10)
@@ -83,3 +83,51 @@ def test_clock_day_patches_zero_entry(mock_patch, mock_entries):
     assert "999" in call_url
     body = mock_patch.call_args.kwargs.get("json") or mock_patch.call_args[1].get("json")
     assert body["data"]["attributes"]["time"] == 480
+
+
+def _entry(time=480, submitted=False, approved=False):
+    return {"id": "1", "attributes": {"time": time, "submitted": submitted, "approved": approved}}
+
+
+@patch("timesheet.productive._get_entries", return_value=[_entry()])
+def test_needs_submit_logged_not_submitted(mock_entries):
+    assert needs_submit(DATE) is True
+
+
+@patch("timesheet.productive._get_entries", return_value=[_entry(submitted=True)])
+def test_needs_submit_already_submitted(mock_entries):
+    """Real case: submitted and waiting for approval."""
+    assert needs_submit(DATE) is False
+
+
+@patch("timesheet.productive._get_entries", return_value=[_entry(approved=True)])
+def test_needs_submit_approved(mock_entries):
+    """Real case: Productive clears `submitted` once the day is approved."""
+    assert needs_submit(DATE) is False
+
+
+@patch("timesheet.productive._get_entries", return_value=[_entry(time=0)])
+def test_needs_submit_ignores_zero_minute_entries(mock_entries):
+    assert needs_submit(DATE) is False
+
+
+@patch("timesheet.productive._get_entries", return_value=[])
+def test_needs_submit_no_entries(mock_entries):
+    assert needs_submit(DATE) is False
+
+
+@patch("timesheet.productive._get_entries", return_value=[_entry(approved=True), _entry()])
+def test_needs_submit_any_pending_entry(mock_entries):
+    assert needs_submit(DATE) is True
+
+
+@patch("timesheet.productive.requests.post")
+def test_submit_day_success(mock_post):
+    mock_post.return_value = _mock_response(201)
+    assert submit_day(DATE) is True
+
+
+@patch("timesheet.productive.requests.post")
+def test_submit_day_rejected_by_api(mock_post):
+    mock_post.return_value = _mock_response(422)
+    assert submit_day(DATE) is False
