@@ -71,6 +71,15 @@ def test_clock_day_sends_correct_payload(mock_post, mock_entries):
     assert entry["relationships"]["service"]["data"]["type"] == "services"
 
 
+@patch("timesheet.productive._get_entries", return_value=[])
+@patch("timesheet.productive.requests.post")
+def test_clock_day_half_day_logs_240(mock_post, mock_entries):
+    mock_post.return_value = _mock_response(201)
+    clock_day(DATE, 4)
+    body = mock_post.call_args.kwargs["json"]
+    assert body["data"]["attributes"]["time"] == 240
+
+
 @patch("timesheet.productive._get_entries", return_value=[
     {"id": "999", "attributes": {"time": 0}}
 ])

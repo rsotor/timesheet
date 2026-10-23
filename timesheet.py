@@ -51,10 +51,14 @@ def main():
     for day in days:
         print(f"\n⏰ {day}")
 
-        if bamboo.is_off_day(day):
+        off = bamboo.off_hours(day)
+        if off >= bamboo.WORKDAY_HOURS:
             print("   🏖️ Day off — skipped")
             off_days += 1
             continue
+        hours = bamboo.WORKDAY_HOURS - off
+        if off:
+            print(f"   🏖️ {off:g}h off — logging {hours:g}h")
 
         for name in provider_names:
             provider = PROVIDERS[name]
@@ -64,7 +68,7 @@ def main():
                 stats[name]["exists"] += 1
                 if name == "productive":
                     productive_days.append(day)
-            elif provider.clock_day(day):
+            elif provider.clock_day(day, hours):
                 print(f"{label}✅ Done")
                 stats[name]["done"] += 1
                 if name == "productive":
