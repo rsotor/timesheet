@@ -32,7 +32,8 @@ flowchart TD
 ```
 
 - **BambooHR:** two clock entries, 08:00–13:00 and 14:00–17:00.
-- **Productive.io:** one 480-minute time entry. If a 0-minute entry already exists for that day, it is updated instead of creating a duplicate.
+- **Partial days off** (e.g. half a day of approved leave in BambooHR): only the remaining hours are logged. In BambooHR they fill from 08:00 (4h → 08:00–12:00).
+- **Productive.io:** one 480-minute time entry (fewer on a partial day off). If a 0-minute entry already exists for that day, it is updated instead of creating a duplicate.
 - At the end, it lists the Productive.io days **not yet submitted or approved** (rejected days included) and asks whether to submit them for approval (default: no). Days already submitted or approved are left alone; if nothing is pending, it does not ask.
 
 > **Note:** BambooHR credentials are always required, even with `--productive`, because days off are read from BambooHR.
@@ -212,7 +213,7 @@ timesheet/
 ├── timesheet.py          # CLI entry point
 ├── timesheet/
 │   ├── common.py         # Argument parsing, working days, config check
-│   ├── bamboo.py         # BambooHR: is_off_day, has_entries, clock_day
+│   ├── bamboo.py         # BambooHR: off_hours, has_entries, clock_day
 │   └── productive.py     # Productive.io: has_entries, clock_day, needs_submit, submit_day
 ├── tests/                # pytest suite (HTTP mocked)
 ├── docs/images/          # README screenshots

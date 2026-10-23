@@ -62,8 +62,9 @@ def needs_submit(date: datetime.date) -> bool:
     )
 
 
-def clock_day(date: datetime.date) -> bool:
-    """Log 8h (480 min) in Productive. Update an existing 0-minute entry if present."""
+def clock_day(date: datetime.date, hours: float = 8) -> bool:
+    """Log the given hours in Productive. Update an existing 0-minute entry if present."""
+    minutes = round(hours * 60)
     date_str = date.strftime("%Y-%m-%d")
 
     # If there is a 0-minute entry, update it instead of creating a duplicate
@@ -74,7 +75,7 @@ def clock_day(date: datetime.date) -> bool:
                 "data": {
                     "type": "time_entries",
                     "id": entry_id,
-                    "attributes": {"time": 480},
+                    "attributes": {"time": minutes},
                 }
             }
             url = f"{BASE_URL}/time_entries/{entry_id}"
@@ -90,7 +91,7 @@ def clock_day(date: datetime.date) -> bool:
             "type": "time_entries",
             "attributes": {
                 "date": date_str,
-                "time": 480,
+                "time": minutes,
             },
             "relationships": {
                 "person": {
