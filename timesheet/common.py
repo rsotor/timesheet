@@ -8,10 +8,10 @@ def _today() -> datetime.date:
     return datetime.date.today()
 
 
-def parse_args(argv: list[str]) -> tuple[datetime.date, datetime.date, list[str], bool]:
+def parse_args(argv: list[str]) -> tuple[datetime.date, datetime.date, list[str], bool, bool]:
     """
     Parse CLI arguments.
-    Return (start_date, end_date, providers, skip_confirm).
+    Return (start_date, end_date, providers, skip_confirm, submit).
     """
     parser = argparse.ArgumentParser(description="Timesheet multi-provider")
     parser.add_argument("period", nargs="*", default=[], help="Period: today, week, month, last-month, DD, or DD-MM-YYYY DD-MM-YYYY")
@@ -19,6 +19,7 @@ def parse_args(argv: list[str]) -> tuple[datetime.date, datetime.date, list[str]
     parser.add_argument("--productive", action="store_true", help="Productive.io only")
     parser.add_argument("--both", action="store_true", help="Both providers (default)")
     parser.add_argument("-y", "--yes", action="store_true", help="Skip confirmation")
+    parser.add_argument("--no-submit", action="store_true", help="Do not submit Productive days for approval")
     args = parser.parse_args(argv)
 
     today = _today()
@@ -61,7 +62,7 @@ def parse_args(argv: list[str]) -> tuple[datetime.date, datetime.date, list[str]
     else:
         parser.error("Too many period arguments")
 
-    return start_date, end_date, providers, args.yes
+    return start_date, end_date, providers, args.yes, not args.no_submit
 
 
 def working_days(start: datetime.date, end: datetime.date) -> list[datetime.date]:

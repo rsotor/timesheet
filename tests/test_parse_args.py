@@ -15,7 +15,7 @@ def _parse(args_str: str) -> tuple:
 
 
 def test_no_args_defaults_to_today_both():
-    start, end, providers, skip = _parse("")
+    start, end, providers, skip, _ = _parse("")
     assert start == TODAY
     assert end == TODAY
     assert providers == ["bamboo", "productive"]
@@ -23,69 +23,79 @@ def test_no_args_defaults_to_today_both():
 
 
 def test_today_keyword():
-    start, end, providers, _ = _parse("today")
+    start, end, providers, _, _ = _parse("today")
     assert start == TODAY
     assert end == TODAY
 
 
 def test_week():
-    start, end, _, _ = _parse("week")
+    start, end, _, _, _ = _parse("week")
     assert start == datetime.date(2026, 4, 6)  # Monday of that week
     assert end == TODAY
 
 
 def test_month():
-    start, end, _, _ = _parse("month")
+    start, end, _, _, _ = _parse("month")
     assert start == datetime.date(2026, 4, 1)
     assert end == TODAY
 
 
 def test_last_month():
-    start, end, _, _ = _parse("last-month")
+    start, end, _, _, _ = _parse("last-month")
     assert start == datetime.date(2026, 3, 1)
     assert end == datetime.date(2026, 3, 31)
 
 
 def test_numeric_day():
-    start, end, _, _ = _parse("22")
+    start, end, _, _, _ = _parse("22")
     assert start == datetime.date(2026, 4, 1)
     assert end == datetime.date(2026, 4, 22)
 
 
 def test_explicit_range():
-    start, end, _, _ = _parse("15-03-2026 28-03-2026")
+    start, end, _, _, _ = _parse("15-03-2026 28-03-2026")
     assert start == datetime.date(2026, 3, 15)
     assert end == datetime.date(2026, 3, 28)
 
 
 def test_bamboo_only():
-    _, _, providers, _ = _parse("--bamboo")
+    _, _, providers, _, _ = _parse("--bamboo")
     assert providers == ["bamboo"]
 
 
 def test_productive_only():
-    _, _, providers, _ = _parse("--productive")
+    _, _, providers, _, _ = _parse("--productive")
     assert providers == ["productive"]
 
 
 def test_both_flag():
-    _, _, providers, _ = _parse("--both")
+    _, _, providers, _, _ = _parse("--both")
     assert providers == ["bamboo", "productive"]
 
 
 def test_yes_flag():
-    _, _, _, skip = _parse("-y")
+    _, _, _, skip, _ = _parse("-y")
     assert skip is True
 
 
 def test_yes_long_flag():
-    _, _, _, skip = _parse("--yes")
+    _, _, _, skip, _ = _parse("--yes")
     assert skip is True
 
 
 def test_combined():
-    start, end, providers, skip = _parse("month --productive -y")
+    start, end, providers, skip, _ = _parse("month --productive -y")
     assert start == datetime.date(2026, 4, 1)
     assert end == TODAY
     assert providers == ["productive"]
     assert skip is True
+
+
+def test_submit_by_default():
+    *_, submit = _parse("week")
+    assert submit is True
+
+
+def test_no_submit_flag():
+    *_, submit = _parse("week --no-submit")
+    assert submit is False
