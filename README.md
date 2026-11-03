@@ -28,13 +28,13 @@ flowchart TD
     C -- No --> D[✅ Register 8 hours]
     D --> F{Productive.io?}
     E --> F
-    F -- Yes --> G[📤 Optionally submit the days<br/>not yet submitted]
+    F -- Yes --> G[📤 Submit the days<br/>not yet submitted]
 ```
 
 - **BambooHR:** two clock entries, 08:00–13:00 and 14:00–17:00.
 - **Partial days off** (e.g. half a day of approved leave in BambooHR): only the remaining hours are logged. In BambooHR they fill from 08:00 (4h → 08:00–12:00).
 - **Productive.io:** one 480-minute time entry (fewer on a partial day off). If a 0-minute entry already exists for that day, it is updated instead of creating a duplicate.
-- At the end, it lists the Productive.io days **not yet submitted or approved** (rejected days included) and asks whether to submit them for approval (default: no). Days already submitted or approved are left alone; if nothing is pending, it does not ask.
+- At the end, it lists the Productive.io days **not yet submitted or approved** (rejected days included) and submits them for approval automatically (use `--no-submit` to skip this). Days already submitted or approved are left alone.
 
 > **Note:** BambooHR credentials are always required, even with `--productive`, because days off are read from BambooHR.
 
@@ -145,7 +145,7 @@ In the response, look for `relationships` → `service` → `data` → `id`.
 ## Usage
 
 ```bash
-uv run timesheet.py [period] [--bamboo | --productive | --both] [-y]
+uv run timesheet.py [period] [--bamboo | --productive | --both] [-y] [--no-submit]
 ```
 
 ### Period
@@ -167,6 +167,7 @@ uv run timesheet.py [period] [--bamboo | --productive | --both] [-y]
 | `--productive` | Productive.io only |
 | `--both` | Both providers (default) |
 | `-y`, `--yes` | Skip the initial confirmation |
+| `--no-submit` | Log the hours in Productive.io but do not submit them for approval |
 
 ### Examples
 

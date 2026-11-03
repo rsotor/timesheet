@@ -19,7 +19,7 @@ def main():
     for stream in (sys.stdout, sys.stderr):
         stream.reconfigure(encoding="utf-8")
 
-    start_date, end_date, provider_names, skip_confirm = parse_args(sys.argv[1:])
+    start_date, end_date, provider_names, skip_confirm, submit = parse_args(sys.argv[1:])
     days = working_days(start_date, end_date)
 
     # BambooHR is always required: it is used to detect days off
@@ -90,14 +90,15 @@ def main():
     if off_days:
         print(f"🏖️ Days off: {off_days}")
 
-    # Only offer days not yet submitted or approved (rejected days count as pending)
+    # Only submit days not yet submitted or approved (rejected days count as pending)
     pending = [day for day in productive_days if productive.needs_submit(day)]
     if productive_days and not pending:
         print("\n📤 Productive: nothing pending submission")
     if pending:
         print(f"\n📤 Pending submission in Productive: {', '.join(str(d) for d in pending)}")
-        answer = input(f"Submit {len(pending)} day(s) for approval? [y/N] ").strip().lower()
-        if answer == "y":
+        if not submit:
+            print("   Not submitted (--no-submit)")
+        else:
             submitted = 0
             for day in pending:
                 if productive.submit_day(day):
